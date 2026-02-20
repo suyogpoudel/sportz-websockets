@@ -33,17 +33,15 @@ matchRouter.get("/", async (req, res) => {
 
     res.json({ data });
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to list matches", details: JSON.stringify(err) });
+    res.status(500).json({
+      error: "Failed to list matches",
+      details: err instanceof Error ? err.message : JSON.stringify(err),
+    });
   }
 });
 
 matchRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body);
-  const {
-    data: { startTime, endTime, homeScore, awayScore },
-  } = parsed;
 
   if (!parsed.success) {
     return res.status(400).json({
@@ -51,6 +49,8 @@ matchRouter.post("/", async (req, res) => {
       details: JSON.stringify(parsed.error),
     });
   }
+
+  const { startTime, endTime, homeScore, awayScore } = parsed.data;
 
   try {
     const [event] = await db
@@ -69,7 +69,7 @@ matchRouter.post("/", async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: "Failed to create match",
-      details: JSON.stringify(err),
+      details: err instanceof Error ? err.message : JSON.stringify(err),
     });
   }
 });
